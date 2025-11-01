@@ -136,18 +136,3 @@ exports.handler = async function(event, context) {
         };
     }
 };
-```
-
-5. **Commit changes**
-
----
-
-### **2️⃣ Deploy'u Bekle**
-
-Netlify otomatik yeniden deploy edecek. 1-2 dakika bekle.
-
----
-
-### **3️⃣ Tekrar Test Et**
-```
-https://netlifytestmidtrans.netlify.app/.netlify/functions/payment-charge
