@@ -63,7 +63,7 @@ exports.handler = async function(event, context) {
             };
         }
 
-        const serverKey = 'Mid-server-kO-tU3T7Q9MYO_25tJTggZeu';
+        const serverKey = 'SB-Mid-server-BURAYA_SANDBOX_KEY_GELECEK';
         const authHeader = 'Basic ' + Buffer.from(serverKey + ':').toString('base64');
 
         const chargePayload = {
@@ -97,7 +97,7 @@ exports.handler = async function(event, context) {
 
         console.log('Calling Midtrans API');
 
-        const response = await fetch('https://api.midtrans.com/v2/charge', {
+        const response = await fetch('https://api.sandbox.midtrans.com/v2/charge', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -110,6 +110,7 @@ exports.handler = async function(event, context) {
         const responseData = await response.json();
         
         console.log('Midtrans response:', response.status);
+        console.log('Midtrans data:', responseData);
 
         return {
             statusCode: 200,
