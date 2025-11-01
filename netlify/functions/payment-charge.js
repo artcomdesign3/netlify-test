@@ -1,4 +1,3 @@
-// Midtrans Core API Payment - CORS Fixed
 exports.handler = async function(event, context) {
     const headers = {
         'Access-Control-Allow-Origin': '*',
@@ -8,10 +7,9 @@ exports.handler = async function(event, context) {
         'Content-Type': 'application/json'
     };
 
-    console.log('🚀 Function called:', event.httpMethod);
+    console.log('Function called:', event.httpMethod);
 
     if (event.httpMethod === 'OPTIONS') {
-        console.log('✅ CORS Preflight OK');
         return { 
             statusCode: 200, 
             headers,
@@ -41,7 +39,7 @@ exports.handler = async function(event, context) {
             customer_phone = '+6281234567890'
         } = requestData;
 
-        console.log('💳 Payment:', { amount, order_id });
+        console.log('Payment request:', { amount, order_id });
 
         if (!card_number || !card_exp_month || !card_exp_year || !card_cvv) {
             return {
@@ -97,7 +95,7 @@ exports.handler = async function(event, context) {
             }]
         };
 
-        console.log('📤 Calling Midtrans...');
+        console.log('Calling Midtrans API');
 
         const response = await fetch('https://api.midtrans.com/v2/charge', {
             method: 'POST',
@@ -111,7 +109,7 @@ exports.handler = async function(event, context) {
 
         const responseData = await response.json();
         
-        console.log('📡 Midtrans:', response.status);
+        console.log('Midtrans response:', response.status);
 
         return {
             statusCode: 200,
@@ -126,7 +124,7 @@ exports.handler = async function(event, context) {
         };
 
     } catch (error) {
-        console.error('🚨 Error:', error);
+        console.error('Error:', error);
         return {
             statusCode: 500,
             headers,
@@ -140,33 +138,16 @@ exports.handler = async function(event, context) {
 };
 ```
 
-4. **Commit new file**
+5. **Commit changes**
 
 ---
 
-### **3️⃣ Netlify'da Tekrar Deploy**
+### **2️⃣ Deploy'u Bekle**
 
-1. [Netlify Dashboard](https://app.netlify.com/sites/netlifytestmidtrans/deploys)
-2. **Trigger deploy** → **Clear cache and deploy site**
-3. Deploy bitince **Functions** sekmesine git
-4. **`payment-charge`** function'ı göreceksin
+Netlify otomatik yeniden deploy edecek. 1-2 dakika bekle.
 
 ---
 
-## **SON DOSYA YAPISI (GitHub)**
-```
-netlify-test/
-├── netlify/
-│   └── functions/
-│       └── payment-charge.js  ✅
-├── netlify.toml  ✅
-└── package.json  ✅
-```
-
----
-
-## **SONUÇ**
-
-Deploy bittikten sonra test et:
+### **3️⃣ Tekrar Test Et**
 ```
 https://netlifytestmidtrans.netlify.app/.netlify/functions/payment-charge
