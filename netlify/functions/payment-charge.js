@@ -28,7 +28,7 @@ exports.handler = async function(event, context) {
     try {
         const requestData = JSON.parse(event.body || '{}');
         const { 
-            token_id,
+            saved_token_id,
             amount,
             order_id,
             customer_name = 'Test Customer',
@@ -36,15 +36,15 @@ exports.handler = async function(event, context) {
             customer_phone = '+6281234567890'
         } = requestData;
 
-        console.log('Charge request:', { token_id, amount, order_id });
+        console.log('One-click payment request:', { saved_token_id, amount, order_id });
 
-        if (!token_id) {
+        if (!saved_token_id) {
             return {
                 statusCode: 400,
                 headers,
                 body: JSON.stringify({ 
                     success: false,
-                    error: 'Missing token_id' 
+                    error: 'Missing saved_token_id' 
                 })
             };
         }
@@ -70,7 +70,7 @@ exports.handler = async function(event, context) {
                 gross_amount: parseInt(amount)
             },
             credit_card: {
-                token_id: token_id,
+                token_id: saved_token_id,
                 authentication: true
             },
             customer_details: {
@@ -80,14 +80,14 @@ exports.handler = async function(event, context) {
                 phone: customer_phone
             },
             item_details: [{
-                id: 'PROD_TEST',
+                id: 'ONECLICK_PROD',
                 price: parseInt(amount),
                 quantity: 1,
-                name: 'Production Test Payment'
+                name: 'One-Click Payment'
             }]
         };
 
-        console.log('Charging with token and 3DS...');
+        console.log('Charging with saved token...');
 
         const chargeResponse = await fetch('https://api.midtrans.com/v2/charge', {
             method: 'POST',
