@@ -28,10 +28,7 @@ exports.handler = async function(event, context) {
     try {
         const requestData = JSON.parse(event.body || '{}');
         const { 
-            card_number,
-            card_exp_month,
-            card_exp_year,
-            card_cvv,
+            token_id,
             amount,
             order_id,
             customer_name = 'Test Customer',
@@ -39,15 +36,15 @@ exports.handler = async function(event, context) {
             customer_phone = '+6281234567890'
         } = requestData;
 
-        console.log('Payment request:', { amount, order_id });
+        console.log('Charge request:', { token_id, amount, order_id });
 
-        if (!card_number || !card_exp_month || !card_exp_year || !card_cvv) {
+        if (!token_id) {
             return {
                 statusCode: 400,
                 headers,
                 body: JSON.stringify({ 
                     success: false,
-                    error: 'Missing card details' 
+                    error: 'Missing token_id' 
                 })
             };
         }
@@ -64,51 +61,7 @@ exports.handler = async function(event, context) {
         }
 
         const serverKey = 'Mid-server-kO-tU3T7Q9MYO_25tJTggZeu';
-        const clientKey = 'Mid-client-yIrRbdPgiI6HE1NI';
         const authHeader = 'Basic ' + Buffer.from(serverKey + ':').toString('base64');
-
-        // STEP 1: GET CARD TOKEN
-        console.log('Step 1: Getting card token from Midtrans...');
-        
-        const tokenPayload = {
-            card_number: card_number,
-            card_exp_month: card_exp_month,
-            card_exp_year: card_exp_year,
-            card_cvv: card_cvv,
-            client_key: clientKey
-        };
-
-        const tokenResponse = await fetch('https://api.midtrans.com/v2/token', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(tokenPayload)
-        });
-
-        const tokenData = await tokenResponse.json();
-        console.log('Token response status:', tokenResponse.status);
-        console.log('Token data:', tokenData);
-
-        if (!tokenData.token_id) {
-            console.error('Failed to get token:', tokenData);
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({
-                    success: false,
-                    error: 'Failed to tokenize card',
-                    details: tokenData
-                })
-            };
-        }
-
-        const token_id = tokenData.token_id;
-        console.log('Token obtained successfully:', token_id);
-
-        // STEP 2: CHARGE WITH TOKEN (3DS ENABLED)
-        console.log('Step 2: Charging with token and 3DS authentication...');
 
         const chargePayload = {
             payment_type: 'credit_card',
@@ -133,6 +86,8 @@ exports.handler = async function(event, context) {
                 name: 'Production Test Payment'
             }]
         };
+
+        console.log('Charging with token and 3DS...');
 
         const chargeResponse = await fetch('https://api.midtrans.com/v2/charge', {
             method: 'POST',
