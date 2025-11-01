@@ -64,11 +64,11 @@ exports.handler = async function(event, context) {
         }
 
         const serverKey = 'Mid-server-kO-tU3T7Q9MYO_25tJTggZeu';
-        const clientKey = 'Mid-client-m49fDXGAC24heFVp'; // CLIENT KEY LAZIM!
+        const clientKey = 'Mid-client-yIrRbdPgiI6HE1NI';
         const authHeader = 'Basic ' + Buffer.from(serverKey + ':').toString('base64');
 
         // STEP 1: GET CARD TOKEN
-        console.log('Step 1: Getting card token...');
+        console.log('Step 1: Getting card token from Midtrans...');
         
         const tokenPayload = {
             card_number: card_number,
@@ -88,7 +88,8 @@ exports.handler = async function(event, context) {
         });
 
         const tokenData = await tokenResponse.json();
-        console.log('Token response:', tokenData);
+        console.log('Token response status:', tokenResponse.status);
+        console.log('Token data:', tokenData);
 
         if (!tokenData.token_id) {
             console.error('Failed to get token:', tokenData);
@@ -104,10 +105,10 @@ exports.handler = async function(event, context) {
         }
 
         const token_id = tokenData.token_id;
-        console.log('Token obtained:', token_id);
+        console.log('Token obtained successfully:', token_id);
 
         // STEP 2: CHARGE WITH TOKEN (3DS ENABLED)
-        console.log('Step 2: Charging with token...');
+        console.log('Step 2: Charging with token and 3DS authentication...');
 
         const chargePayload = {
             payment_type: 'credit_card',
@@ -117,7 +118,7 @@ exports.handler = async function(event, context) {
             },
             credit_card: {
                 token_id: token_id,
-                authentication: true // 3DS ENABLED!
+                authentication: true
             },
             customer_details: {
                 first_name: customer_name.split(' ')[0] || 'Test',
@@ -126,10 +127,10 @@ exports.handler = async function(event, context) {
                 phone: customer_phone
             },
             item_details: [{
-                id: 'TEST_PRODUCT',
+                id: 'PROD_TEST',
                 price: parseInt(amount),
                 quantity: 1,
-                name: 'Test Product Payment'
+                name: 'Production Test Payment'
             }]
         };
 
@@ -161,13 +162,13 @@ exports.handler = async function(event, context) {
         };
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Payment error:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
                 success: false,
-                error: 'Payment failed',
+                error: 'Payment processing failed',
                 message: error.message
             })
         };
