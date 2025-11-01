@@ -77,8 +77,7 @@ exports.handler = async function(event, context) {
                 card_exp_month: card_exp_month,
                 card_exp_year: card_exp_year,
                 card_cvv: card_cvv,
-                secure: true,
-                bank: 'bni',
+                secure: false,
                 save_card: false
             },
             customer_details: {
