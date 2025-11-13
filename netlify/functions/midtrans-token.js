@@ -10,8 +10,9 @@ console.log('🔍 ENV VAR CHECK - type:', typeof process.env.DOKU_PRIVATE_KEY);
 console.log('🔍 ENV VAR CHECK - length:', process.env.DOKU_PRIVATE_KEY ? process.env.DOKU_PRIVATE_KEY.length : 0);
 console.log('🔍 ENV VAR CHECK - first 50 chars:', process.env.DOKU_PRIVATE_KEY ? process.env.DOKU_PRIVATE_KEY.substring(0, 50) : 'NULL');
 
+// Handle Netlify environment variable format: convert literal \n strings to actual newlines
 const DOKU_PRIVATE_KEY = (process.env.DOKU_PRIVATE_KEY && process.env.DOKU_PRIVATE_KEY.trim().length > 0) 
-    ? process.env.DOKU_PRIVATE_KEY 
+    ? process.env.DOKU_PRIVATE_KEY.replace(/\\n/g, '\n')  // Convert literal \n to actual newlines
     : `-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQBoaLriBtWoRl7OAhvS4ta1gYZTniHgZRcCagQHSiSuKF3wMZFx
 Z7J4fGQ2XDF14TNWPe1ZYkP9VgLyTuRPweyUrmqh+wlzE2UORzCqp6g28V6eJZXY
