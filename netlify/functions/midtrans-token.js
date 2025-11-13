@@ -4,7 +4,10 @@
 // =============================================================================
 
 // Get Private Key from Environment Variable (Netlify)
-const DOKU_PRIVATE_KEY = process.env.DOKU_PRIVATE_KEY || `-----BEGIN RSA PRIVATE KEY-----
+// Check if env var exists and is not empty, otherwise use hardcoded fallback
+const DOKU_PRIVATE_KEY = (process.env.DOKU_PRIVATE_KEY && process.env.DOKU_PRIVATE_KEY.trim().length > 0) 
+    ? process.env.DOKU_PRIVATE_KEY 
+    : `-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQBoaLriBtWoRl7OAhvS4ta1gYZTniHgZRcCagQHSiSuKF3wMZFx
 Z7J4fGQ2XDF14TNWPe1ZYkP9VgLyTuRPweyUrmqh+wlzE2UORzCqp6g28V6eJZXY
 uz2RNbJ2QSvqLUjQKXNLpAVBv/qeLtoy/Dt6UqgIhGBhybmkabMd3VBrGQQY84BH
