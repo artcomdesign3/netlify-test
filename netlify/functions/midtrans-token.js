@@ -10,11 +10,65 @@ const DOKU_CONFIG = {
         // Not used - production credentials only
         CLIENT_ID: 'BRN-0275-1760357392509',
         SECRET_KEY: 'SK-bBnDtOM1lK4AAzR72gTC',
+        PRIVATE_KEY: `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQBoaLriBtWoRl7OAhvS4ta1gYZTniHgZRcCagQHSiSuKF3wMZFx
+Z7J4fGQ2XDF14TNWPe1ZYkP9VgLyTuRPweyUrmqh+wlzE2UORzCqp6g28V6eJZXY
+uz2RNbJ2QSvqLUjQKXNLpAVBv/qeLtoy/Dt6UqgIhGBhybmkabMd3VBrGQQY84BH
+oPVXDefl/5EeHanVNeDawwtk0eFNLV/3RyBcxXRIoSVz3Y/uj1V9qk28Av5IWjvQ
+7ggk8HJf22PlyJ4OQACmuloVPnPKmc6qEYb0tAwSyDb6AFZZbIvmGTdhsryEXBK5
+mEJ20SiYKT7r4BJioBBa/M5P+eg3IF5EVWDnAgMBAAECggEATrsiqUw0Etc1qCzI
+5GYvN+E69JTawMYZ6rUc4o5TSIyiAXyvSw/B8b8DJkaw+U3fE1pRP0StNjyErkk1
+Ortl9dvsBscxIfhvDKw8E4Ongf7StXhsHWlcDMKsFyYfwk9xh56qFVDSsfjdOCjm
+Wun+w8fOc9W2hCbEeSlHau63NHpKP6nQn1qkUymku6CwaanUCv/WOfa/8BJ97Jud
+YXvb0OM6fcdMTvIFOEXkHGbYdoXr0OaN6v+iGfKfl1qFHgVHUnIGEUkIZOdAENTD
+m3pQ2KjbwT8mCHIXthmt7HILpXxyH9h1VRoEZJ6k1ylFwSHOEWlGgNKM/e7FLwJC
+n1bJoQKBgQCx04TOmoRejxryHYTeV7zAompFJdZtIW6+GiS1rwh+4sr/E2rCMpnn
+rZHO9aHSeqlUHMgOElh8XkHbXxrihv+7S8LY8G4vkiAsgRc+k8V0E2r3JonAg/Ns
+wnzKcR2Xqgg3DRtbr3BaiKegPb1zvJbUgpgQBIk17boCSfezYFI0UQKBgQCWTuF4
+We/mr8H6CjK+x+ErOzK/+WwP1bByXNCDDVWRLk+fmj9/zT3lYO5LM3tzjjuSO8Mr
+MWUm8Mxjgw3Sjn9XPjSmhYqAQUzybhKchK//fZ1pw3SlZ/mm1NkjixTvEJ1e8HC+
+rXRaS5uJNCotNm07jvbxgZzV8qi6qEqC/AqLtwKBgGyR9PrjUkAdZVk/dpj9vmtq
+fjGbqXBVwjRk59bZd/loZIIaC8tnc5oE2goe5F8KrwmAzQ/yWX4NWm4igdqei9KB
+rgQfv1ZiBCzH4DY/qIV3OY6OQ/p7VYsor2I2b9fiY0OhR/vRgGp2Fsn6CAp6sSgs
+V8Unz9JSQ4gUOxyUiXwRAoGBAIRYdizLO/HqJaks25uiUUAIgtoIGz8iD5fS44HQ
+9tu7ZD6KyYiVRf+3RnqOnQ+VWBydZG6esosEEWM5nK0d7T/7NM6+3MGrPb5kbxzD
+tFgI2darVATkNSzRU1P5fXg2L+rNWOh7v+xVkGDRvqVKvAlqC0OAtYCohiq8Tcdh
+d0OnAoGBAKlb9ZJ7IhmcH16+YwP6r+2fJYY3Tamd36jo6NT3eQW2HmC1c8dz2hpA
+GK3ABuKDWoLAaxT8zsFhitjFseHoJruWc0xG9TcbthBFcPQLy53y9KiEu695pABn
+uxYgJIVMhZnzlvvfZNavnP/8wSNWoSz2Pndgd7eLI5ji9mOIrZ10
+-----END RSA PRIVATE KEY-----`,
         API_URL: 'https://api-sandbox.doku.com/checkout/v1/payment'
     },
     PRODUCTION: {
         CLIENT_ID: 'BRN-0275-1760357392509',
         SECRET_KEY: 'SK-bBnDtOM1lK4AAzR72gTC',
+        PRIVATE_KEY: `-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQBoaLriBtWoRl7OAhvS4ta1gYZTniHgZRcCagQHSiSuKF3wMZFx
+Z7J4fGQ2XDF14TNWPe1ZYkP9VgLyTuRPweyUrmqh+wlzE2UORzCqp6g28V6eJZXY
+uz2RNbJ2QSvqLUjQKXNLpAVBv/qeLtoy/Dt6UqgIhGBhybmkabMd3VBrGQQY84BH
+oPVXDefl/5EeHanVNeDawwtk0eFNLV/3RyBcxXRIoSVz3Y/uj1V9qk28Av5IWjvQ
+7ggk8HJf22PlyJ4OQACmuloVPnPKmc6qEYb0tAwSyDb6AFZZbIvmGTdhsryEXBK5
+mEJ20SiYKT7r4BJioBBa/M5P+eg3IF5EVWDnAgMBAAECggEATrsiqUw0Etc1qCzI
+5GYvN+E69JTawMYZ6rUc4o5TSIyiAXyvSw/B8b8DJkaw+U3fE1pRP0StNjyErkk1
+Ortl9dvsBscxIfhvDKw8E4Ongf7StXhsHWlcDMKsFyYfwk9xh56qFVDSsfjdOCjm
+Wun+w8fOc9W2hCbEeSlHau63NHpKP6nQn1qkUymku6CwaanUCv/WOfa/8BJ97Jud
+YXvb0OM6fcdMTvIFOEXkHGbYdoXr0OaN6v+iGfKfl1qFHgVHUnIGEUkIZOdAENTD
+m3pQ2KjbwT8mCHIXthmt7HILpXxyH9h1VRoEZJ6k1ylFwSHOEWlGgNKM/e7FLwJC
+n1bJoQKBgQCx04TOmoRejxryHYTeV7zAompFJdZtIW6+GiS1rwh+4sr/E2rCMpnn
+rZHO9aHSeqlUHMgOElh8XkHbXxrihv+7S8LY8G4vkiAsgRc+k8V0E2r3JonAg/Ns
+wnzKcR2Xqgg3DRtbr3BaiKegPb1zvJbUgpgQBIk17boCSfezYFI0UQKBgQCWTuF4
+We/mr8H6CjK+x+ErOzK/+WwP1bByXNCDDVWRLk+fmj9/zT3lYO5LM3tzjjuSO8Mr
+MWUm8Mxjgw3Sjn9XPjSmhYqAQUzybhKchK//fZ1pw3SlZ/mm1NkjixTvEJ1e8HC+
+rXRaS5uJNCotNm07jvbxgZzV8qi6qEqC/AqLtwKBgGyR9PrjUkAdZVk/dpj9vmtq
+fjGbqXBVwjRk59bZd/loZIIaC8tnc5oE2goe5F8KrwmAzQ/yWX4NWm4igdqei9KB
+rgQfv1ZiBCzH4DY/qIV3OY6OQ/p7VYsor2I2b9fiY0OhR/vRgGp2Fsn6CAp6sSgs
+V8Unz9JSQ4gUOxyUiXwRAoGBAIRYdizLO/HqJaks25uiUUAIgtoIGz8iD5fS44HQ
+9tu7ZD6KyYiVRf+3RnqOnQ+VWBydZG6esosEEWM5nK0d7T/7NM6+3MGrPb5kbxzD
+tFgI2darVATkNSzRU1P5fXg2L+rNWOh7v+xVkGDRvqVKvAlqC0OAtYCohiq8Tcdh
+d0OnAoGBAKlb9ZJ7IhmcH16+YwP6r+2fJYY3Tamd36jo6NT3eQW2HmC1c8dz2hpA
+GK3ABuKDWoLAaxT8zsFhitjFseHoJruWc0xG9TcbthBFcPQLy53y9KiEu695pABn
+uxYgJIVMhZnzlvvfZNavnP/8wSNWoSz2Pndgd7eLI5ji9mOIrZ10
+-----END RSA PRIVATE KEY-----`,
         API_URL: 'https://api.doku.com/checkout/v1/payment'
     }
 };
@@ -165,24 +219,28 @@ exports.handler = async function(event, context) {
     /**
      * Get DOKU Token B2B
      * Required before making payment API calls
+     * Uses RSA-SHA256 signature with Private Key
      */
-    async function getDokuTokenB2B(clientId, secretKey, isProduction) {
+    async function getDokuTokenB2B(clientId, privateKey, isProduction) {
         const crypto = require('crypto');
         
         const timestamp = getDokuTimestamp();
         
         // Create signature for token request: clientId|timestamp
+        // MUST use RSA-SHA256 with Private Key
         const stringToSign = `${clientId}|${timestamp}`;
-        const sign = crypto.createSign('RSA-SHA256');
-        sign.update(stringToSign, 'utf8');
-        sign.end();
         
-        // For token B2B, we need RSA signature but we don't have private key
-        // So we'll use HMAC with secret key as fallback
-        const signature = crypto
-            .createHmac('sha256', secretKey)
-            .update(stringToSign)
-            .digest('base64');
+        let signature;
+        try {
+            const sign = crypto.createSign('RSA-SHA256');
+            sign.update(stringToSign, 'utf8');
+            sign.end();
+            signature = sign.sign(privateKey, 'base64');
+        } catch (error) {
+            console.error('❌ RSA signature creation failed:', error.message);
+            console.error('   Make sure PRIVATE_KEY is properly configured in DOKU_CONFIG');
+            return null;
+        }
 
         const tokenUrl = isProduction 
             ? 'https://api.doku.com/authorization/v1/access-token/b2b'
@@ -192,6 +250,7 @@ exports.handler = async function(event, context) {
         console.log('   URL:', tokenUrl);
         console.log('   Client-Id:', clientId);
         console.log('   Timestamp:', timestamp);
+        console.log('   Signature algorithm: RSA-SHA256');
 
         try {
             const response = await fetch(tokenUrl, {
@@ -301,12 +360,14 @@ exports.handler = async function(event, context) {
         console.log('📍 Step 1: Obtaining Token B2B...');
         const tokenB2B = await getDokuTokenB2B(
             dokuEnv.CLIENT_ID,
-            dokuEnv.SECRET_KEY,
+            dokuEnv.PRIVATE_KEY,  // Using RSA Private Key
             true  // Production
         );
 
         if (!tokenB2B) {
             console.error('❌ Failed to obtain Token B2B - cannot proceed');
+            console.error('   HINT: Make sure PRIVATE_KEY is configured in DOKU_CONFIG');
+            console.error('   Get your Private Key from DOKU Dashboard → Settings → API Keys');
             return {
                 statusCode: 500,
                 headers: headers,
@@ -314,7 +375,8 @@ exports.handler = async function(event, context) {
                     success: false,
                     gateway: 'doku',
                     error: 'Failed to obtain DOKU authentication token (Token B2B)',
-                    message: 'Token B2B is required for signature creation'
+                    message: 'RSA Private Key is required. Please configure PRIVATE_KEY in DOKU_CONFIG.',
+                    hint: 'Get your Private/Public Key pair from DOKU Dashboard'
                 })
             };
         }
