@@ -224,21 +224,39 @@ exports.handler = async function(event, context) {
     async function getDokuTokenB2B(clientId, privateKey, isProduction) {
         const crypto = require('crypto');
         
+        console.log('🔑 ========== DOKU TOKEN B2B REQUEST START ==========');
+        console.log('🔍 Configuration Check:');
+        console.log('   Client ID:', clientId);
+        console.log('   Client ID Length:', clientId ? clientId.length : 0);
+        console.log('   Private Key Exists:', !!privateKey);
+        console.log('   Private Key Type:', typeof privateKey);
+        console.log('   Private Key Length:', privateKey ? privateKey.length : 0);
+        console.log('   Private Key First 100 chars:', privateKey ? privateKey.substring(0, 100) : 'NULL');
+        console.log('   Is Production:', isProduction);
+        
         const timestamp = getDokuTimestamp();
+        console.log('   Timestamp:', timestamp);
         
         // Create signature for token request: clientId|timestamp
         // MUST use RSA-SHA256 with Private Key
         const stringToSign = `${clientId}|${timestamp}`;
+        console.log('   String to Sign:', stringToSign);
         
         let signature;
         try {
+            console.log('🔐 Creating RSA-SHA256 signature...');
             const sign = crypto.createSign('RSA-SHA256');
             sign.update(stringToSign, 'utf8');
             sign.end();
             signature = sign.sign(privateKey, 'base64');
+            console.log('✅ Signature created successfully');
+            console.log('   Signature Length:', signature.length);
+            console.log('   Signature First 50 chars:', signature.substring(0, 50));
         } catch (error) {
-            console.error('❌ RSA signature creation failed:', error.message);
-            console.error('   Make sure PRIVATE_KEY is properly configured in DOKU_CONFIG');
+            console.error('❌ RSA SIGNING ERROR:', error);
+            console.error('   Error Name:', error.name);
+            console.error('   Error Message:', error.message);
+            console.error('   Private key format:', privateKey ? privateKey.substring(0, 100) : 'NULL');
             return null;
         }
 
@@ -246,11 +264,14 @@ exports.handler = async function(event, context) {
             ? 'https://api.doku.com/authorization/v1/access-token/b2b'
             : 'https://api-sandbox.doku.com/authorization/v1/access-token/b2b';
 
-        console.log('🔑 Requesting DOKU Token B2B...');
+        console.log('� Sending Token B2B Request...');
         console.log('   URL:', tokenUrl);
-        console.log('   Client-Id:', clientId);
-        console.log('   Timestamp:', timestamp);
-        console.log('   Signature algorithm: RSA-SHA256');
+        console.log('   Headers:');
+        console.log('      Content-Type: application/json');
+        console.log('      X-CLIENT-KEY:', clientId);
+        console.log('      X-TIMESTAMP:', timestamp);
+        console.log('      X-SIGNATURE:', signature.substring(0, 50) + '...');
+        console.log('   Body:', JSON.stringify({ grantType: 'client_credentials' }));
 
         try {
             const response = await fetch(tokenUrl, {
@@ -266,21 +287,32 @@ exports.handler = async function(event, context) {
                 })
             });
 
+            console.log('📥 Response received');
+            console.log('   Status:', response.status);
+            console.log('   Status Text:', response.statusText);
+
             const responseData = await response.json();
+            console.log('📥 Response Body:', JSON.stringify(responseData, null, 2));
 
             if (response.ok && responseData.accessToken) {
                 console.log('✅ Token B2B obtained successfully');
-                console.log('   Token:', responseData.accessToken.substring(0, 20) + '...');
+                console.log('   Token Length:', responseData.accessToken.length);
+                console.log('   Token First 50 chars:', responseData.accessToken.substring(0, 50));
                 console.log('   Expires in:', responseData.expiresIn, 'seconds');
+                console.log('🔑 ========== DOKU TOKEN B2B REQUEST END (SUCCESS) ==========');
                 return responseData.accessToken;
             } else {
-                console.error('❌ Token B2B request failed');
-                console.error('   Status:', response.status);
-                console.error('   Response:', responseData);
+                console.error('❌ TOKEN B2B REQUEST FAILED');
+                console.error('   HTTP Status:', response.status);
+                console.error('   Response:', JSON.stringify(responseData, null, 2));
+                console.log('🔑 ========== DOKU TOKEN B2B REQUEST END (FAILED) ==========');
                 return null;
             }
         } catch (error) {
-            console.error('🚨 Token B2B error:', error);
+            console.error('❌ TOKEN B2B NETWORK ERROR:', error);
+            console.error('   Error Name:', error.name);
+            console.error('   Error Message:', error.message);
+            console.log('🔑 ========== DOKU TOKEN B2B REQUEST END (ERROR) ==========');
             return null;
         }
     }
@@ -289,6 +321,9 @@ exports.handler = async function(event, context) {
      * Handle DOKU Payment Creation
      */
     async function handleDokuPayment(requestData, headers) {
+        console.log('💳 ========== DOKU PAYMENT REQUEST START ==========');
+        console.log('📦 Request Data:', JSON.stringify(requestData, null, 2));
+        
         const {
             amount,
             order_id,
@@ -301,19 +336,37 @@ exports.handler = async function(event, context) {
             auto_redirect
         } = requestData;
 
+        console.log('🔍 Extracted Parameters:');
+        console.log('   Amount:', amount);
+        console.log('   Order ID:', order_id);
+        console.log('   Item Name:', item_name);
+        console.log('   Callback Base URL:', callback_base_url);
+        console.log('   Test Mode:', test_mode);
+        console.log('   Payment Source:', payment_source);
+        console.log('   Custom Name:', custom_name);
+        console.log('   Credit Card:', credit_card ? 'PROVIDED' : 'NOT PROVIDED');
+        console.log('   Auto Redirect:', auto_redirect);
+
         // ALWAYS USE PRODUCTION for Doku (credentials are production)
         const dokuEnv = DOKU_CONFIG.PRODUCTION;
 
-        console.log('💳 DOKU Payment Gateway Selected');
+        console.log('⚙️ DOKU Configuration:');
         console.log('   Environment: PRODUCTION (FORCED)');
         console.log('   API URL:', dokuEnv.API_URL);
         console.log('   Client ID:', dokuEnv.CLIENT_ID);
-        console.log('   Order ID:', order_id);
-        console.log('   Amount:', amount);
+        console.log('   Secret Key Exists:', !!dokuEnv.SECRET_KEY);
+        console.log('   Secret Key Length:', dokuEnv.SECRET_KEY ? dokuEnv.SECRET_KEY.length : 0);
+        console.log('   Private Key Exists:', !!dokuEnv.PRIVATE_KEY);
+        console.log('   Private Key Length:', dokuEnv.PRIVATE_KEY ? dokuEnv.PRIVATE_KEY.length : 0);
+        console.log('   Private Key First 100 chars:', dokuEnv.PRIVATE_KEY ? dokuEnv.PRIVATE_KEY.substring(0, 100) : 'NULL');
 
         // Generate Doku request parameters
         const requestId = createDokuRequestId();
         const timestamp = getDokuTimestamp();
+
+        console.log('🆔 Request Metadata:');
+        console.log('   Request ID:', requestId);
+        console.log('   Timestamp:', timestamp);
 
         // Determine callback URL
         let callbackUrl;
