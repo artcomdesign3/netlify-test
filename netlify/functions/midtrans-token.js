@@ -169,9 +169,9 @@ exports.handler = async function(event, context) {
         const endpointUrl = '/checkout/v1/payment';
         const stringToSign = `${httpMethod}:${endpointUrl}:${tokenB2B}:${bodyHashHex}:${timestamp}`;
 
-        // Step 4: Create HMAC SHA512 signature
+        // Step 4: Create HMAC SHA256 signature (DOKU uses SHA256, not SHA512!)
         const decodedKey = Buffer.from(secretKey, 'utf-8');
-        const hmac = crypto.createHmac('sha512', decodedKey);
+        const hmac = crypto.createHmac('sha256', decodedKey);
         hmac.update(stringToSign);
         const signature = hmac.digest('base64');
 
@@ -182,7 +182,7 @@ exports.handler = async function(event, context) {
         console.log('   Body length:', minifiedBody.length);
         console.log('   Body SHA-256 (hex):', bodyHashHex);
         console.log('   String to sign:', stringToSign);
-        console.log('   HMAC Algorithm: SHA512');
+        console.log('   HMAC Algorithm: SHA256');
         console.log('   Final signature:', signature.substring(0, 30) + '...');
 
         return signature;
