@@ -4,7 +4,10 @@
 // =============================================================================
 
 const DOKU_CONFIG = {
+    // NOTE: These credentials are PRODUCTION credentials only
+    // ALWAYS using PRODUCTION API
     SANDBOX: {
+        // Not used - production credentials only
         CLIENT_ID: 'BRN-0275-1760357392509',
         SECRET_KEY: 'SK-bBnDtOM1lK4AAzR72gTC',
         API_URL: 'https://api-sandbox.doku.com/checkout/v1/payment'
@@ -165,12 +168,13 @@ exports.handler = async function(event, context) {
             auto_redirect
         } = requestData;
 
-        // Select Doku environment
-        const dokuEnv = test_mode ? DOKU_CONFIG.SANDBOX : DOKU_CONFIG.PRODUCTION;
+        // ALWAYS USE PRODUCTION for Doku (credentials are production)
+        const dokuEnv = DOKU_CONFIG.PRODUCTION;
 
         console.log('💳 DOKU Payment Gateway Selected');
-        console.log('   Environment:', test_mode ? 'SANDBOX' : 'PRODUCTION');
+        console.log('   Environment: PRODUCTION (FORCED)');
         console.log('   API URL:', dokuEnv.API_URL);
+        console.log('   Client ID:', dokuEnv.CLIENT_ID);
         console.log('   Order ID:', order_id);
         console.log('   Amount:', amount);
 
