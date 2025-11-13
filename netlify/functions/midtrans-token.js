@@ -234,6 +234,10 @@ exports.handler = async function(event, context) {
         let signature;
         try {
             console.log('🔐 Creating RSA-SHA256 signature...');
+            console.log('   Private Key has \\n literal check:', privateKey.includes('\\n'));
+            console.log('   Private Key has real newline check:', privateKey.includes('\n'));
+            console.log('   Private Key char codes (first 60):', privateKey.substring(0, 60).split('').map(c => c.charCodeAt(0)).join(','));
+            
             const sign = crypto.createSign('RSA-SHA256');
             sign.update(stringToSign, 'utf8');
             sign.end();
@@ -245,7 +249,11 @@ exports.handler = async function(event, context) {
             console.error('❌ RSA SIGNING ERROR:', error);
             console.error('   Error Name:', error.name);
             console.error('   Error Message:', error.message);
-            console.error('   Private key format:', privateKey ? privateKey.substring(0, 100) : 'NULL');
+            console.error('   Error Stack:', error.stack);
+            console.error('   Private key length:', privateKey ? privateKey.length : 0);
+            console.error('   Private key has literal \\n:', privateKey ? privateKey.includes('\\n') : false);
+            console.error('   Private key has real newline:', privateKey ? privateKey.includes('\n') : false);
+            console.error('   Private key first 150 chars:', privateKey ? privateKey.substring(0, 150) : 'NULL');
             return null;
         }
 
