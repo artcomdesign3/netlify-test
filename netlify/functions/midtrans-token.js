@@ -689,7 +689,7 @@ exports.handler = async function(event, context) {
             user_agent,
             origin,
             payment_source = 'legacy',
-            payment_gateway = 'midtrans',  // NEW: Gateway selection (midtrans or doku)
+            payment_gateway,  // REQUIRED: Gateway selection (midtrans or doku) - NO DEFAULT
             wix_ref,
             wix_expiry,
             wix_signature,
@@ -706,6 +706,39 @@ exports.handler = async function(event, context) {
         console.log('🧪 Test Mode:', test_mode);
 
         // ============================================================================
+        // GATEWAY VALIDATION: payment_gateway is REQUIRED
+        // ============================================================================
+
+        if (!payment_gateway) {
+            console.error('❌ Missing payment_gateway parameter');
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                    success: false,
+                    error: 'payment_gateway parameter is required',
+                    allowed_gateways: ['midtrans', 'doku'],
+                    message: 'Please specify payment_gateway: "midtrans" or "doku"'
+                })
+            };
+        }
+
+        if (payment_gateway !== 'midtrans' && payment_gateway !== 'doku') {
+            console.error('❌ Invalid payment_gateway:', payment_gateway);
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                    success: false,
+                    error: 'Invalid payment_gateway parameter',
+                    received: payment_gateway,
+                    allowed_gateways: ['midtrans', 'doku'],
+                    message: 'payment_gateway must be either "midtrans" or "doku"'
+                })
+            };
+        }
+
+        // ============================================================================
         // GATEWAY ROUTING: Route to appropriate payment gateway
         // ============================================================================
 
@@ -714,8 +747,9 @@ exports.handler = async function(event, context) {
             return await handleDokuPayment(requestData, headers);
         }
 
-        // Default: Continue with Midtrans (existing flow)
-        console.log('🔀 Routing to MIDTRANS payment gateway...');
+        if (payment_gateway === 'midtrans') {
+            console.log('🔀 Routing to MIDTRANS payment gateway...');
+        }
 
         // ============================================================================
         // MIDTRANS PAYMENT FLOW (EXISTING CODE BELOW)
