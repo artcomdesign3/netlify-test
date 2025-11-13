@@ -198,11 +198,24 @@ exports.handler = async function(event, context) {
     }
 
     /**
-     * Get ISO8601 timestamp in UTC with milliseconds
-     * DOKU expects: 2024-01-15T10:30:45.123Z
+     * Get ISO8601 timestamp for DOKU (WITHOUT milliseconds, WITH timezone)
+     * DOKU expects: 2024-11-14T02:47:14+07:00 (NOT .123Z format)
      */
     function getDokuTimestamp() {
-        return new Date().toISOString(); // Already returns correct format: 2024-01-15T10:30:45.123Z
+        // Get current time in Jakarta/WIB timezone (UTC+7)
+        const now = new Date();
+        const jakartaOffset = 7 * 60; // +7 hours in minutes
+        const jakartaTime = new Date(now.getTime() + (jakartaOffset * 60 * 1000));
+        
+        // Format: YYYY-MM-DDTHH:mm:ss+07:00 (WITHOUT milliseconds)
+        const year = jakartaTime.getUTCFullYear();
+        const month = String(jakartaTime.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(jakartaTime.getUTCDate()).padStart(2, '0');
+        const hour = String(jakartaTime.getUTCHours()).padStart(2, '0');
+        const minute = String(jakartaTime.getUTCMinutes()).padStart(2, '0');
+        const second = String(jakartaTime.getUTCSeconds()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}T${hour}:${minute}:${second}+07:00`;
     }
 
     /**
