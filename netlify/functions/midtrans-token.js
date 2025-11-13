@@ -5,6 +5,11 @@
 
 // Get Private Key from Environment Variable (Netlify)
 // Check if env var exists and is not empty, otherwise use hardcoded fallback
+console.log('🔍 ENV VAR CHECK - process.env.DOKU_PRIVATE_KEY exists:', !!process.env.DOKU_PRIVATE_KEY);
+console.log('🔍 ENV VAR CHECK - type:', typeof process.env.DOKU_PRIVATE_KEY);
+console.log('🔍 ENV VAR CHECK - length:', process.env.DOKU_PRIVATE_KEY ? process.env.DOKU_PRIVATE_KEY.length : 0);
+console.log('🔍 ENV VAR CHECK - first 50 chars:', process.env.DOKU_PRIVATE_KEY ? process.env.DOKU_PRIVATE_KEY.substring(0, 50) : 'NULL');
+
 const DOKU_PRIVATE_KEY = (process.env.DOKU_PRIVATE_KEY && process.env.DOKU_PRIVATE_KEY.trim().length > 0) 
     ? process.env.DOKU_PRIVATE_KEY 
     : `-----BEGIN RSA PRIVATE KEY-----
@@ -34,6 +39,9 @@ d0OnAoGBAKlb9ZJ7IhmcH16+YwP6r+2fJYY3Tamd36jo6NT3eQW2HmC1c8dz2hpA
 GK3ABuKDWoLAaxT8zsFhitjFseHoJruWc0xG9TcbthBFcPQLy53y9KiEu695pABn
 uxYgJIVMhZnzlvvfZNavnP/8wSNWoSz2Pndgd7eLI5ji9mOIrZ10
 -----END RSA PRIVATE KEY-----`;
+
+console.log('🔍 FINAL DOKU_PRIVATE_KEY - length:', DOKU_PRIVATE_KEY ? DOKU_PRIVATE_KEY.length : 0);
+console.log('🔍 FINAL DOKU_PRIVATE_KEY - first 50 chars:', DOKU_PRIVATE_KEY ? DOKU_PRIVATE_KEY.substring(0, 50) : 'NULL');
 
 const DOKU_CONFIG = {
     // NOTE: These credentials are PRODUCTION credentials only
