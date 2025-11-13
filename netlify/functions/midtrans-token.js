@@ -104,37 +104,47 @@ exports.handler = async function(event, context) {
     /**
      * Create DOKU HMACSHA256 Signature
      * Required for DOKU API authentication
+     * DOKU Spec: Component Signature = "Client-Id:{value}\nRequest-Id:{value}\nRequest-Timestamp:{value}\nRequest-Target:{value}\nDigest:{value}"
      */
     function createDokuSignature(clientId, requestId, timestamp, requestBody, secretKey) {
         const crypto = require('crypto');
 
-        // Create digest of request body - MUST BE: SHA-256=base64_hash
+        // Step 1: Create SHA-256 hash of request body
         const bodyHash = crypto
             .createHash('sha256')
             .update(requestBody)
             .digest('base64');
 
-        const bodyDigest = `SHA-256=${bodyHash}`;
+        // Step 2: Format digest header (DOKU format: "SHA-256={hash}")
+        const digestValue = `SHA-256=${bodyHash}`;
 
-        // Create string to sign
-        const stringToSign = `Client-Id:${clientId}\n` +
-                           `Request-Id:${requestId}\n` +
-                           `Request-Timestamp:${timestamp}\n` +
-                           `Request-Target:/checkout/v1/payment\n` +
-                           `Digest:${bodyDigest}`;
+        // Step 3: Build Component Signature
+        // IMPORTANT: DOKU uses UPPERCASE header names in signature (not lowercase!)
+        const componentSignature = 
+            `Client-Id:${clientId}\n` +
+            `Request-Id:${requestId}\n` +
+            `Request-Timestamp:${timestamp}\n` +
+            `Request-Target:/checkout/v1/payment\n` +
+            `Digest:${digestValue}`;
 
-        // Create HMACSHA256 signature
+        // Step 4: Create HMAC SHA256 signature
         const signature = crypto
             .createHmac('sha256', secretKey)
-            .update(stringToSign)
+            .update(componentSignature)
             .digest('base64');
 
-        console.log('🔐 Doku Signature Created');
-        console.log('   String to sign length:', stringToSign.length);
-        console.log('   Body digest:', bodyDigest.substring(0, 30) + '...');
-        console.log('   Signature:', signature.substring(0, 20) + '...');
+        console.log('🔐 DOKU Signature Debug:');
+        console.log('   Client-Id:', clientId);
+        console.log('   Request-Id:', requestId);
+        console.log('   Request-Timestamp:', timestamp);
+        console.log('   Body length:', requestBody.length);
+        console.log('   Body SHA-256:', bodyHash.substring(0, 30) + '...');
+        console.log('   Digest header:', digestValue);
+        console.log('   Component signature:\n' + componentSignature);
+        console.log('   Component signature length:', componentSignature.length);
+        console.log('   Final signature:', signature);
 
-        return signature;
+        return { signature, digestValue };
     }
 
     /**
@@ -147,10 +157,11 @@ exports.handler = async function(event, context) {
     }
 
     /**
-     * Get ISO8601 timestamp in UTC+0
+     * Get ISO8601 timestamp in UTC with milliseconds
+     * DOKU expects: 2024-01-15T10:30:45.123Z
      */
     function getDokuTimestamp() {
-        return new Date().toISOString();
+        return new Date().toISOString(); // Already returns correct format: 2024-01-15T10:30:45.123Z
     }
 
     /**
@@ -224,16 +235,8 @@ exports.handler = async function(event, context) {
 
         const requestBodyString = JSON.stringify(dokuRequestBody);
 
-        // Create digest for Doku API
-        const crypto = require('crypto');
-        const bodyHash = crypto
-            .createHash('sha256')
-            .update(requestBodyString)
-            .digest('base64');
-        const digestHeader = `SHA-256=${bodyHash}`;
-
-        // Create signature
-        const signature = createDokuSignature(
+        // Create signature (returns both signature and digest)
+        const { signature, digestValue } = createDokuSignature(
             dokuEnv.CLIENT_ID,
             requestId,
             timestamp,
@@ -247,13 +250,14 @@ exports.handler = async function(event, context) {
             'Client-Id': dokuEnv.CLIENT_ID,
             'Request-Id': requestId,
             'Request-Timestamp': timestamp,
-            'Digest': digestHeader,
+            'Digest': digestValue,
             'Signature': `HMACSHA256=${signature}`
         };
 
         console.log('📤 Sending request to Doku...');
         console.log('   Request-Id:', requestId);
         console.log('   Timestamp:', timestamp);
+        console.log('   Headers:', JSON.stringify(dokuHeaders, null, 2));
 
         try {
             const response = await fetch(dokuEnv.API_URL, {
