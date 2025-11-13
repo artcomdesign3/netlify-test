@@ -108,12 +108,13 @@ exports.handler = async function(event, context) {
     function createDokuSignature(clientId, requestId, timestamp, requestBody, secretKey) {
         const crypto = require('crypto');
 
-        // Create digest of request body (lowercase hex)
-        const bodyDigest = crypto
+        // Create digest of request body - MUST BE: SHA-256=base64_hash
+        const bodyHash = crypto
             .createHash('sha256')
             .update(requestBody)
-            .digest('hex')
-            .toLowerCase();
+            .digest('base64');
+
+        const bodyDigest = `SHA-256=${bodyHash}`;
 
         // Create string to sign
         const stringToSign = `Client-Id:${clientId}\n` +
@@ -130,7 +131,7 @@ exports.handler = async function(event, context) {
 
         console.log('🔐 Doku Signature Created');
         console.log('   String to sign length:', stringToSign.length);
-        console.log('   Body digest:', bodyDigest.substring(0, 20) + '...');
+        console.log('   Body digest:', bodyDigest.substring(0, 30) + '...');
         console.log('   Signature:', signature.substring(0, 20) + '...');
 
         return signature;
@@ -223,6 +224,14 @@ exports.handler = async function(event, context) {
 
         const requestBodyString = JSON.stringify(dokuRequestBody);
 
+        // Create digest for Doku API
+        const crypto = require('crypto');
+        const bodyHash = crypto
+            .createHash('sha256')
+            .update(requestBodyString)
+            .digest('base64');
+        const digestHeader = `SHA-256=${bodyHash}`;
+
         // Create signature
         const signature = createDokuSignature(
             dokuEnv.CLIENT_ID,
@@ -238,6 +247,7 @@ exports.handler = async function(event, context) {
             'Client-Id': dokuEnv.CLIENT_ID,
             'Request-Id': requestId,
             'Request-Timestamp': timestamp,
+            'Digest': digestHeader,
             'Signature': `HMACSHA256=${signature}`
         };
 
