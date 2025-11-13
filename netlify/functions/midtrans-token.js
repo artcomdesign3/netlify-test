@@ -102,11 +102,11 @@ exports.handler = async function(event, context) {
     // =============================================================================
 
     /**
-     * Create DOKU Signature for Checkout API
-     * DOKU uses HMAC SHA512 (not SHA256!) with specific string format
-     * Reference: DOKU Node.js library - generateSymmetricSignature
+     * Create DOKU Signature for Checkout API (WITHOUT Token B2B)
+     * Simplified version - using only Secret Key
+     * Reference: DOKU Direct signature method
      */
-    function createDokuSignature(requestId, timestamp, requestBody, secretKey, tokenB2B) {
+    function createDokuSignature(requestId, timestamp, requestBody, secretKey) {
         const crypto = require('crypto');
 
         // Step 1: Minify JSON (no spaces)
@@ -119,24 +119,23 @@ exports.handler = async function(event, context) {
             .digest('hex')
             .toLowerCase();
 
-        // Step 3: Build string to sign
-        // Format: POST:/checkout/v1/payment:tokenB2B:bodyHashHex:timestamp
+        // Step 3: Build string to sign (WITHOUT Token B2B)
+        // Simplified Format: POST:/checkout/v1/payment:bodyHashHex:timestamp
         const httpMethod = 'POST';
         const endpointUrl = '/checkout/v1/payment';
-        const stringToSign = `${httpMethod}:${endpointUrl}:${tokenB2B}:${bodyHashHex}:${timestamp}`;
+        const stringToSign = `${httpMethod}:${endpointUrl}:${bodyHashHex}:${timestamp}`;
 
-        // Step 4: Create HMAC SHA512 signature (NOT SHA256!)
+        // Step 4: Create HMAC SHA512 signature
         const decodedKey = Buffer.from(secretKey, 'utf-8');
         const hmac = crypto.createHmac('sha512', decodedKey);
         hmac.update(stringToSign);
         const signature = hmac.digest('base64');
 
-        console.log('🔐 DOKU Signature Debug (Checkout API):');
+        console.log('🔐 DOKU Signature Debug (Simplified - No Token):');
         console.log('   Request-Id:', requestId);
         console.log('   Timestamp:', timestamp);
         console.log('   Body length:', minifiedBody.length);
         console.log('   Body SHA-256 (hex):', bodyHashHex);
-        console.log('   Token B2B:', tokenB2B ? tokenB2B.substring(0, 20) + '...' : 'NOT PROVIDED');
         console.log('   String to sign:', stringToSign);
         console.log('   HMAC Algorithm: SHA512');
         console.log('   Final signature:', signature);
@@ -251,27 +250,6 @@ exports.handler = async function(event, context) {
         console.log('   Order ID:', order_id);
         console.log('   Amount:', amount);
 
-        // Step 1: Get Token B2B first
-        console.log('📍 Step 1: Getting Token B2B...');
-        const tokenB2B = await getDokuTokenB2B(dokuEnv.CLIENT_ID, dokuEnv.SECRET_KEY, true);
-        
-        if (!tokenB2B) {
-            console.error('❌ Failed to obtain Token B2B');
-            return {
-                statusCode: 500,
-                headers: headers,
-                body: JSON.stringify({
-                    success: false,
-                    gateway: 'doku',
-                    error: 'Failed to obtain DOKU authentication token',
-                    message: 'Could not get Token B2B from DOKU'
-                })
-            };
-        }
-
-        // Step 2: Prepare payment request
-        console.log('📍 Step 2: Preparing payment request...');
-
         // Generate Doku request parameters
         const requestId = createDokuRequestId();
         const timestamp = getDokuTimestamp();
@@ -317,30 +295,28 @@ exports.handler = async function(event, context) {
 
         const requestBodyString = JSON.stringify(dokuRequestBody);
 
-        // Step 3: Create signature with Token B2B
-        console.log('📍 Step 3: Creating signature...');
+        // Create signature WITHOUT Token B2B
+        console.log('📍 Creating signature (simplified method)...');
         const signature = createDokuSignature(
             requestId,
             timestamp,
             requestBodyString,
-            dokuEnv.SECRET_KEY,
-            tokenB2B
+            dokuEnv.SECRET_KEY
         );
 
-        // Prepare headers for Doku API
+        // Prepare headers for Doku API (without Authorization)
         const dokuHeaders = {
             'Content-Type': 'application/json',
             'Client-Id': dokuEnv.CLIENT_ID,
             'Request-Id': requestId,
             'Request-Timestamp': timestamp,
-            'Signature': `HMACSHA256=${signature}`,
-            'Authorization': `Bearer ${tokenB2B}`
+            'Signature': `HMACSHA256=${signature}`
         };
 
-        console.log('📤 Sending request to Doku...');
+        console.log('📤 Sending request to Doku (without Token B2B)...');
         console.log('   Request-Id:', requestId);
         console.log('   Timestamp:', timestamp);
-        console.log('   Headers:', JSON.stringify({...dokuHeaders, Authorization: 'Bearer ***', Signature: 'HMACSHA256=***'}, null, 2));
+        console.log('   Headers:', JSON.stringify({...dokuHeaders, Signature: 'HMACSHA256=***'}, null, 2));
 
         try {
             const response = await fetch(dokuEnv.API_URL, {
