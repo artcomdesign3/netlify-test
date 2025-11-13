@@ -462,7 +462,7 @@ exports.handler = async function(event, context) {
             'Client-Id': dokuEnv.CLIENT_ID,
             'Request-Id': requestId,
             'Request-Timestamp': timestamp,
-            'Signature': `HMACSHA256=${signature}`,
+            'Signature': signature,  // Just the signature value, no prefix
             'Authorization': `Bearer ${tokenB2B}`
         };
 
