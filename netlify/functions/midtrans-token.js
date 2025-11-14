@@ -465,19 +465,20 @@ exports.handler = async function(event, context) {
         );
 
         // STEP 3: Prepare headers for Doku API (WITH Authorization header)
+        // CRITICAL: DOKU Documentation requires X-Signature header with HMACSHA256= prefix
         const dokuHeaders = {
             'Content-Type': 'application/json',
             'Client-Id': dokuEnv.CLIENT_ID,
             'Request-Id': requestId,
             'Request-Timestamp': timestamp,
-            'Signature': signature,  // Try just "Signature" without X- prefix
+            'X-Signature': `HMACSHA256=${signature}`,  // DOKU requires X-Signature with HMACSHA256= prefix
             'Authorization': `Bearer ${tokenB2B}`
         };
 
         console.log('📤 Step 3: Sending request to Doku (WITH Token B2B)...');
         console.log('   Request-Id:', requestId);
         console.log('   Timestamp:', timestamp);
-        console.log('   Headers:', JSON.stringify({...dokuHeaders, 'Signature': 'HMACSHA512=***'}, null, 2));
+        console.log('   Headers:', JSON.stringify({...dokuHeaders, 'X-Signature': 'HMACSHA256=***'}, null, 2));
 
         try {
             const response = await fetch(dokuEnv.API_URL, {
