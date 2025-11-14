@@ -417,8 +417,6 @@ exports.handler = async function(event, context) {
             console.log('👤 Customer added:', dokuRequestBody.customer.name);
         }
 
-        const requestBodyString = JSON.stringify(dokuRequestBody);
-
         // STEP 1: Get Token B2B (required for signature)
         console.log('📍 Step 1: Obtaining Token B2B...');
         const tokenB2B = await getDokuTokenB2B(
@@ -451,7 +449,7 @@ exports.handler = async function(event, context) {
         const signature = createDokuSignature(
             requestId,
             timestamp,
-            requestBodyString,
+            dokuRequestBody,  // Pass object, not string
             tokenB2B,
             dokuEnv.SECRET_KEY
         );
@@ -475,7 +473,7 @@ exports.handler = async function(event, context) {
             const response = await fetch(dokuEnv.API_URL, {
                 method: 'POST',
                 headers: dokuHeaders,
-                body: requestBodyString
+                body: JSON.stringify(dokuRequestBody)  // Stringify here, not earlier
             });
 
             const responseText = await response.text();
