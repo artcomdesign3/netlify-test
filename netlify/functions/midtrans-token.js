@@ -394,20 +394,7 @@ exports.handler = async function(event, context) {
 
         console.log('🔗 Callback URL:', callbackUrl);
 
-        // Prepare Doku request body
-        const dokuRequestBody = {
-            order: {
-                amount: parseInt(amount),
-                invoice_number: order_id,
-                callback_url: callbackUrl,
-                auto_redirect: auto_redirect !== false
-            },
-            payment: {
-                payment_due_date: 60  // 60 minutes
-            }
-        };
-
-        // CRITICAL: DOKU may require customer info - always add it
+        // Prepare customer data first
         const customerData = custom_name 
             ? generateDeterministicContact(custom_name, credit_card)
             : {
@@ -416,13 +403,24 @@ exports.handler = async function(event, context) {
                 email: 'customer@artcom.design',
                 phone: '+6281234567890'
             };
-        
-        dokuRequestBody.customer = {
-            name: `${customerData.first_name} ${customerData.last_name}`,
-            email: customerData.email,
-            phone: customerData.phone
+
+        // Prepare Doku request body (simplified structure for Checkout API)
+        const dokuRequestBody = {
+            order: {
+                amount: parseInt(amount),
+                invoice_number: order_id,
+                callback_url: callbackUrl
+            },
+            customer: {
+                name: `${customerData.first_name} ${customerData.last_name}`,
+                email: customerData.email,
+                phone: customerData.phone
+            }
         };
-        console.log('👤 Customer added:', dokuRequestBody.customer.name);
+        
+        console.log('👤 Customer:', dokuRequestBody.customer.name);
+        console.log('💰 Order amount:', dokuRequestBody.order.amount);
+        console.log('📋 Invoice number:', dokuRequestBody.order.invoice_number);
 
         // STEP 1: Get Token B2B (required for signature)
         console.log('📍 Step 1: Obtaining Token B2B...');
@@ -542,7 +540,6 @@ exports.handler = async function(event, context) {
                         redirect_url: responseData.response.payment.url,
                         order_id: order_id,
                         amount: parseInt(amount),
-                        auto_redirect: dokuRequestBody.order.auto_redirect,
                         expiry_date: responseData.response.payment.expired_date,
                         doku_response: responseData,
                         timestamp: Math.floor(Date.now() / 1000),
