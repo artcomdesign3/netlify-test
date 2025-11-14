@@ -404,21 +404,21 @@ exports.handler = async function(event, context) {
                 phone: '+6281234567890'
             };
 
-        // Prepare Doku request body (simplified structure for Checkout API)
+        // Prepare Doku request body (DOKU Checkout API format)
+        // Reference: https://developers.doku.com/accept-payment/direct-api/checkout
         const dokuRequestBody = {
-            order: {
-                amount: parseInt(amount),
-                invoice_number: order_id,
-                callback_url: callbackUrl
-            },
             customer: {
                 name: `${customerData.first_name} ${customerData.last_name}`,
-                email: customerData.email,
-                phone: customerData.phone
+                email: customerData.email
+            },
+            order: {
+                invoice_number: order_id,
+                amount: parseInt(amount)
             }
         };
         
         console.log('👤 Customer:', dokuRequestBody.customer.name);
+        console.log('📧 Email:', dokuRequestBody.customer.email);
         console.log('💰 Order amount:', dokuRequestBody.order.amount);
         console.log('📋 Invoice number:', dokuRequestBody.order.invoice_number);
 
