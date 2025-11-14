@@ -145,47 +145,44 @@ exports.handler = async function(event, context) {
     // =============================================================================
 
     /**
-     * Create DOKU Signature for Checkout API (WITH Token B2B in signature)
-     * SNAP Standard Format (DOKU Official Documentation)
+     * Create DOKU Signature for Checkout API (Request Header Signature Format)
      * Reference: https://developers.doku.com/accept-payment/direct-api/snap
+     * Uses: Client-Id, Request-Id, Request-Timestamp, Request-Target, Digest
      */
-    function createDokuSignature(requestId, timestamp, requestBody, tokenB2B, secretKey) {
+    function createDokuSignature(clientId, requestId, timestamp, requestBody, secretKey) {
         const crypto = require('crypto');
 
         // Step 1: Minify JSON (no spaces, no newlines)
         const minifiedBody = JSON.stringify(requestBody);
 
-        // Step 2: Create SHA-256 hash of body in HEX format (lowercase)
-        const bodyHashHex = crypto
+        // Step 2: Create Digest - SHA-256 BASE64 hash of body
+        const digest = crypto
             .createHash('sha256')
             .update(minifiedBody)
-            .digest('hex')
-            .toLowerCase();
+            .digest('base64');
 
-        // Step 3: Build Component String (SNAP Format - each component on new line)
-        // Format per DOKU SNAP docs:
-        // HTTPMethod:RelativePath:AccessToken:RequestBodyHash:Timestamp
-        const httpMethod = 'POST';
-        const relativePath = '/checkout/v1/payment';
+        // Step 3: Build Component String (Request Header Signature Format)
+        // Each component on new line with \n separator
+        // Format: Client-Id:value\nRequest-Id:value\nRequest-Timestamp:value\nRequest-Target:value\nDigest:value
+        const requestTarget = '/checkout/v1/payment';
         
-        // SNAP format uses newline separators between components
-        const componentString = `${httpMethod}:${relativePath}:${tokenB2B}:${bodyHashHex}:${timestamp}`;
+        const componentString = `Client-Id:${clientId}\nRequest-Id:${requestId}\nRequest-Timestamp:${timestamp}\nRequest-Target:${requestTarget}\nDigest:${digest}`;
 
-        // Step 4: Create HMAC SHA512 signature (DOKU uses SHA512 for symmetric!)
-        const hmac = crypto.createHmac('sha512', secretKey);
+        // Step 4: Create HMAC SHA-256 signature (Request Header uses SHA-256, not SHA-512!)
+        const hmac = crypto.createHmac('sha256', secretKey);
         hmac.update(componentString);
         const signature = hmac.digest('base64');
 
-        console.log('🔐 DOKU Signature Debug (SNAP Format):');
+        console.log('🔐 DOKU Signature Debug (Request Header Format):');
+        console.log('   Client-Id:', clientId);
         console.log('   Request-Id:', requestId);
-        console.log('   Timestamp:', timestamp);
-        console.log('   HTTP Method:', httpMethod);
-        console.log('   Relative Path:', relativePath);
-        console.log('   Access Token length:', tokenB2B ? tokenB2B.length : 0);
+        console.log('   Request-Timestamp:', timestamp);
+        console.log('   Request-Target:', requestTarget);
         console.log('   Body length:', minifiedBody.length);
-        console.log('   Body SHA-256 (hex):', bodyHashHex);
-        console.log('   Component String:', componentString);
-        console.log('   HMAC Algorithm: SHA512');
+        console.log('   Digest (SHA-256 base64):', digest.substring(0, 30) + '...');
+        console.log('   Component String:');
+        console.log('   ', componentString.replace(/\n/g, '\\n'));
+        console.log('   HMAC Algorithm: SHA256');
         console.log('   Secret Key length:', secretKey ? secretKey.length : 0);
         console.log('   Final signature:', signature.substring(0, 30) + '...');
 
@@ -454,31 +451,31 @@ exports.handler = async function(event, context) {
 
         console.log('✅ Token B2B obtained successfully');
 
-        // STEP 2: Create signature WITH Token B2B
-        console.log('📍 Step 2: Creating signature (WITH Token B2B)...');
+        // STEP 2: Create signature (Request Header Format - NO Token B2B in signature!)
+        console.log('📍 Step 2: Creating signature (Request Header Format)...');
         const signature = createDokuSignature(
+            dokuEnv.CLIENT_ID,
             requestId,
             timestamp,
             dokuRequestBody,  // Pass object, not string
-            tokenB2B,
             dokuEnv.SECRET_KEY
         );
 
         // STEP 3: Prepare headers for Doku API (WITH Authorization header)
-        // CRITICAL: DOKU Documentation requires X-Signature header with HMACSHA256= prefix
+        // CRITICAL: DOKU Documentation - Request Header Signature uses "Signature" header (NO X- prefix)
         const dokuHeaders = {
             'Content-Type': 'application/json',
             'Client-Id': dokuEnv.CLIENT_ID,
             'Request-Id': requestId,
             'Request-Timestamp': timestamp,
-            'X-Signature': `HMACSHA256=${signature}`,  // DOKU requires X-Signature with HMACSHA256= prefix
+            'Signature': `HMACSHA256=${signature}`,  // Request Header Signature format
             'Authorization': `Bearer ${tokenB2B}`
         };
 
-        console.log('📤 Step 3: Sending request to Doku (WITH Token B2B)...');
+        console.log('📤 Step 3: Sending request to Doku (Request Header Signature)...');
         console.log('   Request-Id:', requestId);
         console.log('   Timestamp:', timestamp);
-        console.log('   Headers:', JSON.stringify({...dokuHeaders, 'X-Signature': 'HMACSHA256=***'}, null, 2));
+        console.log('   Headers:', JSON.stringify({...dokuHeaders, 'Signature': 'HMACSHA256=***'}, null, 2));
 
         try {
             const response = await fetch(dokuEnv.API_URL, {
