@@ -199,24 +199,13 @@ exports.handler = async function(event, context) {
     }
 
     /**
-     * Get ISO8601 timestamp for DOKU (WITHOUT milliseconds, WITH timezone)
-     * DOKU expects: 2024-11-14T02:47:14+07:00 (NOT .123Z format)
+     * Get ISO8601 timestamp for DOKU (UTC Z format as per documentation)
+     * DOKU expects: 2020-08-11T08:45:42Z (UTC+0 with Z suffix)
      */
     function getDokuTimestamp() {
-        // Get current time in Jakarta/WIB timezone (UTC+7)
+        // Return UTC timestamp with Z suffix, no milliseconds
         const now = new Date();
-        const jakartaOffset = 7 * 60; // +7 hours in minutes
-        const jakartaTime = new Date(now.getTime() + (jakartaOffset * 60 * 1000));
-        
-        // Format: YYYY-MM-DDTHH:mm:ss+07:00 (WITHOUT milliseconds)
-        const year = jakartaTime.getUTCFullYear();
-        const month = String(jakartaTime.getUTCMonth() + 1).padStart(2, '0');
-        const day = String(jakartaTime.getUTCDate()).padStart(2, '0');
-        const hour = String(jakartaTime.getUTCHours()).padStart(2, '0');
-        const minute = String(jakartaTime.getUTCMinutes()).padStart(2, '0');
-        const second = String(jakartaTime.getUTCSeconds()).padStart(2, '0');
-        
-        return `${year}-${month}-${day}T${hour}:${minute}:${second}+07:00`;
+        return now.toISOString().replace(/\.\d{3}Z$/, 'Z');
     }
 
     /**
@@ -404,23 +393,32 @@ exports.handler = async function(event, context) {
                 phone: '+6281234567890'
             };
 
+        // CRITICAL FIX: Trim invoice_number to 30 chars (DOKU Credit Card requirement)
+        // DOKU Documentation: Max 64 chars normally, but 30 chars if Credit Card is enabled
+        const invoiceNumber = String(order_id).substring(0, 30);
+
         // Prepare Doku request body (DOKU Checkout API format)
         // Reference: https://developers.doku.com/accept-payment/direct-api/checkout
+        // MANDATORY FIELDS: order (amount, invoice_number) + payment (payment_due_date)
         const dokuRequestBody = {
+            order: {
+                invoice_number: invoiceNumber,
+                amount: parseInt(amount, 10)
+            },
+            payment: {
+                payment_due_date: 60  // MANDATORY: minutes until payment expires
+            },
             customer: {
                 name: `${customerData.first_name} ${customerData.last_name}`,
                 email: customerData.email
-            },
-            order: {
-                invoice_number: order_id,
-                amount: parseInt(amount)
             }
         };
         
         console.log('👤 Customer:', dokuRequestBody.customer.name);
         console.log('📧 Email:', dokuRequestBody.customer.email);
         console.log('💰 Order amount:', dokuRequestBody.order.amount);
-        console.log('📋 Invoice number:', dokuRequestBody.order.invoice_number);
+        console.log('📋 Invoice number (trimmed to 30):', dokuRequestBody.order.invoice_number);
+        console.log('⏱️  Payment due date:', dokuRequestBody.payment.payment_due_date, 'minutes');
 
         // STEP 1: Get Token B2B (required for signature)
         console.log('📍 Step 1: Obtaining Token B2B...');
@@ -459,20 +457,21 @@ exports.handler = async function(event, context) {
             dokuEnv.SECRET_KEY
         );
 
-        // STEP 3: Prepare headers for Doku API (WITH Authorization header)
-        // CRITICAL: DOKU Documentation - Request Header Signature uses "Signature" header (NO X- prefix)
+        // STEP 3: Prepare headers for Doku API (NO Authorization header per documentation)
+        // DOKU Checkout API Documentation: Only requires Client-Id, Request-Id, Request-Timestamp, Signature
+        // Authorization Bearer token is NOT used for Checkout endpoint
         const dokuHeaders = {
             'Content-Type': 'application/json',
             'Client-Id': dokuEnv.CLIENT_ID,
             'Request-Id': requestId,
             'Request-Timestamp': timestamp,
-            'Signature': `HMACSHA256=${signature}`,  // Request Header Signature format
-            'Authorization': `Bearer ${tokenB2B}`
+            'Signature': `HMACSHA256=${signature}`
+            // NO Authorization header - Checkout uses HMAC Signature only
         };
 
         console.log('📤 Step 3: Sending request to Doku (Request Header Signature)...');
         console.log('   Request-Id:', requestId);
-        console.log('   Timestamp:', timestamp);
+        console.log('   Timestamp (UTC Z format):', timestamp);
         console.log('   Headers:', JSON.stringify({...dokuHeaders, 'Signature': 'HMACSHA256=***'}, null, 2));
 
         try {
