@@ -171,8 +171,8 @@ exports.handler = async function(event, context) {
         // SNAP format uses newline separators between components
         const componentString = `${httpMethod}:${relativePath}:${tokenB2B}:${bodyHashHex}:${timestamp}`;
 
-        // Step 4: Create HMAC SHA256 signature
-        const hmac = crypto.createHmac('sha256', secretKey);
+        // Step 4: Create HMAC SHA512 signature (DOKU uses SHA512 for symmetric!)
+        const hmac = crypto.createHmac('sha512', secretKey);
         hmac.update(componentString);
         const signature = hmac.digest('base64');
 
@@ -185,7 +185,7 @@ exports.handler = async function(event, context) {
         console.log('   Body length:', minifiedBody.length);
         console.log('   Body SHA-256 (hex):', bodyHashHex);
         console.log('   Component String:', componentString);
-        console.log('   HMAC Algorithm: SHA256');
+        console.log('   HMAC Algorithm: SHA512');
         console.log('   Secret Key length:', secretKey ? secretKey.length : 0);
         console.log('   Final signature:', signature.substring(0, 30) + '...');
 
