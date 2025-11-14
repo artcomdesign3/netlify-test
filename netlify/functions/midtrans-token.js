@@ -146,13 +146,13 @@ exports.handler = async function(event, context) {
 
     /**
      * Create DOKU Signature for Checkout API (WITH Token B2B in signature)
-     * Format: POST:/checkout/v1/payment:tokenB2B:bodyHashHex:timestamp
-     * Reference: DOKU Node.js Library - tokenService.generateSymmetricSignature()
+     * SNAP Standard Format (DOKU Official Documentation)
+     * Reference: https://developers.doku.com/accept-payment/direct-api/snap
      */
     function createDokuSignature(requestId, timestamp, requestBody, tokenB2B, secretKey) {
         const crypto = require('crypto');
 
-        // Step 1: Minify JSON (no spaces)
+        // Step 1: Minify JSON (no spaces, no newlines)
         const minifiedBody = JSON.stringify(requestBody);
 
         // Step 2: Create SHA-256 hash of body in HEX format (lowercase)
@@ -162,27 +162,31 @@ exports.handler = async function(event, context) {
             .digest('hex')
             .toLowerCase();
 
-        // Step 3: Build string to sign (WITH Token B2B)
-        // CRITICAL: Token B2B must be included in signature string!
-        // Format: httpMethod:endpointUrl:tokenB2B:bodyHashHex:timestamp
+        // Step 3: Build Component String (SNAP Format - each component on new line)
+        // Format per DOKU SNAP docs:
+        // HTTPMethod:RelativePath:AccessToken:RequestBodyHash:Timestamp
         const httpMethod = 'POST';
-        const endpointUrl = '/checkout/v1/payment';
-        const stringToSign = `${httpMethod}:${endpointUrl}:${tokenB2B}:${bodyHashHex}:${timestamp}`;
+        const relativePath = '/checkout/v1/payment';
+        
+        // SNAP format uses newline separators between components
+        const componentString = `${httpMethod}:${relativePath}:${tokenB2B}:${bodyHashHex}:${timestamp}`;
 
-        // Step 4: Create HMAC SHA256 signature (DOKU uses SHA256, not SHA512!)
-        const decodedKey = Buffer.from(secretKey, 'utf-8');
-        const hmac = crypto.createHmac('sha256', decodedKey);
-        hmac.update(stringToSign);
+        // Step 4: Create HMAC SHA256 signature
+        const hmac = crypto.createHmac('sha256', secretKey);
+        hmac.update(componentString);
         const signature = hmac.digest('base64');
 
-        console.log('🔐 DOKU Signature Debug (WITH Token B2B):');
+        console.log('🔐 DOKU Signature Debug (SNAP Format):');
         console.log('   Request-Id:', requestId);
         console.log('   Timestamp:', timestamp);
-        console.log('   Token B2B length:', tokenB2B ? tokenB2B.length : 0);
+        console.log('   HTTP Method:', httpMethod);
+        console.log('   Relative Path:', relativePath);
+        console.log('   Access Token length:', tokenB2B ? tokenB2B.length : 0);
         console.log('   Body length:', minifiedBody.length);
         console.log('   Body SHA-256 (hex):', bodyHashHex);
-        console.log('   String to sign:', stringToSign);
+        console.log('   Component String:', componentString);
         console.log('   HMAC Algorithm: SHA256');
+        console.log('   Secret Key length:', secretKey ? secretKey.length : 0);
         console.log('   Final signature:', signature.substring(0, 30) + '...');
 
         return signature;
@@ -406,16 +410,22 @@ exports.handler = async function(event, context) {
             }
         };
 
-        // Add customer info if provided
-        if (custom_name) {
-            const customerData = generateDeterministicContact(custom_name, credit_card);
-            dokuRequestBody.customer = {
-                name: `${customerData.first_name} ${customerData.last_name}`,
-                email: customerData.email,
-                phone: customerData.phone
+        // CRITICAL: DOKU may require customer info - always add it
+        const customerData = custom_name 
+            ? generateDeterministicContact(custom_name, credit_card)
+            : {
+                first_name: 'Customer',
+                last_name: 'ArtCom',
+                email: 'customer@artcom.design',
+                phone: '+6281234567890'
             };
-            console.log('👤 Customer added:', dokuRequestBody.customer.name);
-        }
+        
+        dokuRequestBody.customer = {
+            name: `${customerData.first_name} ${customerData.last_name}`,
+            email: customerData.email,
+            phone: customerData.phone
+        };
+        console.log('👤 Customer added:', dokuRequestBody.customer.name);
 
         // STEP 1: Get Token B2B (required for signature)
         console.log('📍 Step 1: Obtaining Token B2B...');
